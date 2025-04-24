@@ -1,25 +1,30 @@
 "use client"
 
-import { useState, useEffect } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
+import { Menu, X, LogOut, User } from "lucide-react"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { Menu, X, User, LogOut, BarChart2, FileText } from "lucide-react"
 
 export default function Navbar() {
   const pathname = usePathname()
-  const [isLoggedIn, setIsLoggedIn] = useState(false)
   const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const [isLoggedIn, setIsLoggedIn] = useState(false)
+  const [username, setUsername] = useState("")
 
+  // Check if user is logged in on client side only
   useEffect(() => {
-    // Check if user is logged in
-    const username = localStorage.getItem("username")
-    setIsLoggedIn(!!username)
+    const storedUsername = localStorage.getItem("username")
+    setIsLoggedIn(!!storedUsername)
+    if (storedUsername) {
+      setUsername(storedUsername)
+    }
   }, [pathname])
 
   const handleLogout = () => {
     localStorage.removeItem("username")
+    localStorage.removeItem("token")
     setIsLoggedIn(false)
     window.location.href = "/login"
   }
@@ -77,9 +82,9 @@ export default function Navbar() {
           ) : (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon">
+                <Button variant="ghost" size="icon" className="gap-2">
                   <User className="h-5 w-5" />
-                  <span className="sr-only">User menu</span>
+                  <span className="sr-only md:not-sr-only md:ml-2">{username}</span>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
@@ -116,7 +121,6 @@ export default function Navbar() {
                   className="flex items-center gap-2 text-sm font-medium"
                   onClick={() => setIsMenuOpen(false)}
                 >
-                  <BarChart2 className="h-4 w-4" />
                   Dashboard
                 </Link>
                 <Link
@@ -124,7 +128,6 @@ export default function Navbar() {
                   className="flex items-center gap-2 text-sm font-medium"
                   onClick={() => setIsMenuOpen(false)}
                 >
-                  <FileText className="h-4 w-4" />
                   Audit Log
                 </Link>
               </>
