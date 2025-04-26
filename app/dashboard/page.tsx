@@ -3,8 +3,11 @@
 import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { AlertCircle, Activity, MousePointer, Keyboard } from "lucide-react"
+import { AlertCircle, Activity, MousePointer, Keyboard, CreditCard } from "lucide-react"
+import { Button } from "@/components/ui/button"
 import { useRouter } from "next/navigation"
+import Link from "next/link"
+import { isUserLockedOut, getRemainingLockoutTime } from "@/lib/banking-security"
 
 export default function Dashboard() {
   const router = useRouter()
@@ -12,6 +15,8 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [showBankingAlert, setShowBankingAlert] = useState(false)
+  const [lockoutMinutes, setLockoutMinutes] = useState(0)
   const [behavioralStats, setBehavioralStats] = useState({
     typingSpeed: 0,
     mouseMovements: 0,
@@ -30,6 +35,12 @@ export default function Dashboard() {
     }
 
     setIsAuthenticated(true)
+
+    // Check if banking is locked out
+    if (isUserLockedOut()) {
+      setShowBankingAlert(true)
+      setLockoutMinutes(getRemainingLockoutTime())
+    }
 
     // Fetch anomalies from the backend
     const fetchAnomalies = async () => {
@@ -76,6 +87,34 @@ export default function Dashboard() {
   return (
     <div className="container mx-auto px-4 py-8">
       <h1 className="text-3xl font-bold mb-6">Behavioral Analysis Dashboard</h1>
+
+      {showBankingAlert && (
+        <Alert variant="destructive" className="mb-6">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>
+            Banking access is temporarily locked due to suspicious activity. Please try again in {lockoutMinutes}{" "}
+            minutes.
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {/* Banking Access Card */}
+      <Card className="mb-6">
+        <CardContent className="p-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center">
+              <CreditCard className="h-10 w-10 text-primary mr-4" />
+              <div>
+                <h2 className="text-2xl font-bold">Banking Portal</h2>
+                <p className="text-muted-foreground">Access your secure banking dashboard</p>
+              </div>
+            </div>
+            <Button asChild disabled={showBankingAlert} size="lg" className="mt-2">
+              <Link href="/banking">{showBankingAlert ? "Access Locked" : "Access Banking Portal →"}</Link>
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
 
       {loading ? (
         <div className="flex justify-center p-8">

@@ -1,32 +1,32 @@
 "use client"
 
 import Link from "next/link"
-import { usePathname } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
-import { Menu, X, LogOut, User } from "lucide-react"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { Menu, X, LogOut } from "lucide-react"
 
 export default function Navbar() {
   const pathname = usePathname()
+  const router = useRouter()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isLoggedIn, setIsLoggedIn] = useState(false)
-  const [username, setUsername] = useState("")
 
   // Check if user is logged in on client side only
   useEffect(() => {
     const storedUsername = localStorage.getItem("username")
     setIsLoggedIn(!!storedUsername)
-    if (storedUsername) {
-      setUsername(storedUsername)
-    }
   }, [pathname])
 
   const handleLogout = () => {
     localStorage.removeItem("username")
     localStorage.removeItem("token")
+
+    // Clear the auth cookie
+    document.cookie = "token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT"
+
     setIsLoggedIn(false)
-    window.location.href = "/login"
+    router.push("/login")
   }
 
   return (
@@ -67,6 +67,14 @@ export default function Navbar() {
               >
                 Audit Log
               </Link>
+              <Link
+                href="/banking"
+                className={`text-sm font-medium transition-colors hover:text-primary ${
+                  pathname === "/banking" ? "text-primary" : "text-muted-foreground"
+                }`}
+              >
+                Banking
+              </Link>
             </>
           )}
 
@@ -80,20 +88,10 @@ export default function Navbar() {
               </Button>
             </div>
           ) : (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="gap-2">
-                  <User className="h-5 w-5" />
-                  <span className="sr-only md:not-sr-only md:ml-2">{username}</span>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={handleLogout}>
-                  <LogOut className="mr-2 h-4 w-4" />
-                  <span>Logout</span>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <Button variant="ghost" size="sm" onClick={handleLogout} className="gap-2">
+              <LogOut className="h-4 w-4" />
+              <span>Logout</span>
+            </Button>
           )}
         </nav>
 
@@ -129,6 +127,13 @@ export default function Navbar() {
                   onClick={() => setIsMenuOpen(false)}
                 >
                   Audit Log
+                </Link>
+                <Link
+                  href="/banking"
+                  className="flex items-center gap-2 text-sm font-medium"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  Banking
                 </Link>
               </>
             )}
