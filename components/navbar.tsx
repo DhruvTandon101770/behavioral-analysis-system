@@ -29,21 +29,26 @@ export default function Navbar() {
     window.location.href = "/login"
   }
 
+  // Set links based on auth state
+  const homeLink = isLoggedIn ? "/hospital-home" : "/login"
+  const dashboardLink = "/hospital"
+  const auditLogLink = "/logs"
+
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 items-center justify-between">
         <div className="flex items-center gap-2">
-          <Link href="/" className="font-bold text-xl">
-            BehaviorSys
+          <Link href={homeLink} className="font-bold text-xl">
+            STRAND
           </Link>
         </div>
 
         {/* Desktop Navigation */}
         <nav className="hidden md:flex items-center gap-6">
           <Link
-            href="/"
+            href={homeLink}
             className={`text-sm font-medium transition-colors hover:text-primary ${
-              pathname === "/" ? "text-primary" : "text-muted-foreground"
+              pathname === homeLink ? "text-primary" : "text-muted-foreground"
             }`}
           >
             Home
@@ -52,17 +57,17 @@ export default function Navbar() {
           {isLoggedIn && (
             <>
               <Link
-                href="/dashboard"
+                href={dashboardLink}
                 className={`text-sm font-medium transition-colors hover:text-primary ${
-                  pathname === "/dashboard" ? "text-primary" : "text-muted-foreground"
+                  pathname === dashboardLink ? "text-primary" : "text-muted-foreground"
                 }`}
               >
                 Dashboard
               </Link>
               <Link
-                href="/audit"
+                href={auditLogLink}
                 className={`text-sm font-medium transition-colors hover:text-primary ${
-                  pathname === "/audit" ? "text-primary" : "text-muted-foreground"
+                  pathname === auditLogLink ? "text-primary" : "text-muted-foreground"
                 }`}
               >
                 Audit Log
@@ -110,21 +115,21 @@ export default function Navbar() {
       {isMenuOpen && (
         <div className="md:hidden border-t">
           <div className="container py-4 space-y-4">
-            <Link href="/" className="flex items-center gap-2 text-sm font-medium" onClick={() => setIsMenuOpen(false)}>
+            <Link href={homeLink} className="flex items-center gap-2 text-sm font-medium" onClick={() => setIsMenuOpen(false)}>
               Home
             </Link>
 
             {isLoggedIn && (
               <>
                 <Link
-                  href="/dashboard"
+                  href={dashboardLink}
                   className="flex items-center gap-2 text-sm font-medium"
                   onClick={() => setIsMenuOpen(false)}
                 >
                   Dashboard
                 </Link>
                 <Link
-                  href="/audit"
+                  href={auditLogLink}
                   className="flex items-center gap-2 text-sm font-medium"
                   onClick={() => setIsMenuOpen(false)}
                 >

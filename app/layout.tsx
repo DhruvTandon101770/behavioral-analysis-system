@@ -4,6 +4,9 @@ import { Inter } from "next/font/google"
 import "./globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
 import Navbar from "@/components/navbar"
+import { Toaster } from "@/components/ui/toaster"
+import WarningSystem from "./components/WarningSystem"
+import ContinuousBehaviorMonitor from "./components/ContinuousBehaviorMonitor"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -21,9 +24,12 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body className={inter.className}>
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
+          <ContinuousBehaviorMonitor />
+          <WarningSystem />
           <Navbar />
           <main className="min-h-screen">{children}</main>
         </ThemeProvider>
+        <Toaster />
       </body>
     </html>
   )

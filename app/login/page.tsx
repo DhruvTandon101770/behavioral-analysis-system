@@ -13,6 +13,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { AlertCircle, CheckCircle } from "lucide-react"
 import CaptchaWithBehavior from "@/components/captcha-with-behavior"
 import type { BehavioralProfile } from "@/lib/behavior-tracker"
+import { behaviorMonitor } from '@/lib/monitoring'
 
 export default function Login() {
   const router = useRouter()
@@ -25,7 +26,6 @@ export default function Login() {
   const [isLoading, setIsLoading] = useState(false)
   const [showCaptcha, setShowCaptcha] = useState(false)
   const [userId, setUserId] = useState<number | null>(null)
-  const [token, setToken] = useState<string | null>(null)
   const [verificationStatus, setVerificationStatus] = useState<string | null>(null)
 
   const handleLogin = async (event: React.FormEvent) => {
@@ -40,25 +40,33 @@ export default function Login() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ username, password }),
+        body: JSON.stringify({ 
+          username, 
+          password
+        }),
       })
 
       const data = await response.json()
 
       if (!response.ok) {
-        throw new Error(data.message || "Login failed")
+        throw new Error(data.error || "Login failed")
       }
 
-      // Store user ID and token for behavior verification
-      setUserId(data.user.id)
-      setToken(data.token)
+      // Store user ID and username for monitoring and session
+      setUserId(data.userId)
+      localStorage.setItem("userId", data.userId.toString())
+      localStorage.setItem("username", username)
 
       // Show CAPTCHA for behavior verification
       setShowCaptcha(true)
       setVerificationStatus("Please complete the CAPTCHA for behavior verification")
+
+      // Initialize behavior monitoring with correct userId
+      behaviorMonitor.setUserId(data.userId.toString())
     } catch (error: any) {
       console.error("Login error:", error)
       setError(error.message || "Invalid username or password")
+    } finally {
       setIsLoading(false)
     }
   }
@@ -67,7 +75,7 @@ export default function Login() {
     success: boolean
     behavioralProfile?: BehavioralProfile
   }) => {
-    if (!result.success || !userId || !token || !result.behavioralProfile) {
+    if (!result.success || !userId || !result.behavioralProfile) {
       setError("Behavior verification failed. Please try again.")
       setShowCaptcha(false)
       setIsLoading(false)
@@ -77,45 +85,13 @@ export default function Login() {
     setVerificationStatus("Verifying your behavioral pattern...")
 
     try {
-      // Verify behavior
-      const response = await fetch("/api/auth/verify-behavior", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          behavioralProfile: result.behavioralProfile,
-        }),
-      })
+      // Initialize behavior monitoring
+      behaviorMonitor.setUserId(userId.toString())
+      localStorage.setItem("userId", userId.toString())
+      localStorage.setItem("username", username)
 
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.message || "Behavior verification failed")
-      }
-
-      if (data.isAnomaly) {
-        setVerificationStatus("Suspicious behavior detected. Additional verification may be required.")
-        setTimeout(() => {
-          // Even with anomaly, we'll let them in for demo purposes
-          // In a real system, you might require additional verification
-          localStorage.setItem("username", username)
-          localStorage.setItem("token", token)
-          router.push("/dashboard")
-        }, 2000)
-      } else {
-        setVerificationStatus("Behavior verified successfully! Redirecting...")
-
-        // Store user data in localStorage
-        localStorage.setItem("username", username)
-        localStorage.setItem("token", token)
-
-        // Redirect to dashboard after a short delay
-        setTimeout(() => {
-          router.push("/dashboard")
-        }, 1000)
-      }
+      // Redirect to hospital homepage
+      router.push("/hospital")
     } catch (error: any) {
       console.error("Behavior verification error:", error)
       setError(error.message)
